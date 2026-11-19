@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>robot_arm_pkg</name>
+  <version>0.0.1</version>
+  <description>ROS2 robot arm package — Gemma 4 E2B VLA + ACT Policy</description>
+  <maintainer email="seongbin55228295@gmail.com">seongbin</maintainer>
+  <license>Apache-2.0</license>
+
+  <buildtool_depend>ament_python</buildtool_depend>
+
+  <depend>rclpy</depend>
+  <depend>sensor_msgs</depend>
+  <depend>std_msgs</depend>
+  <depend>std_srvs</depend>                     <!-- robot_controller_node: /go_home Trigger -->
+  <depend>geometry_msgs</depend>
+  <depend>message_filters</depend>              <!-- camera_node: ApproximateTimeSynchronizer -->
+  <!-- cv_bridge 의존 제거 — ROS Humble apt 빌드가 NumPy 1.x ABI 와만
+       호환되어 NumPy 2.x 환경에서 깨진다. /camera/rgb 변환은
+       robot_arm_pkg/utils/ros_image.py 의 np.frombuffer 헬퍼로 대체. -->
+  <exec_depend>python3-pil</exec_depend>          <!-- agent_node: RGB → base64 PNG 인코딩 (Gemma VLM image_url) -->
+  <exec_depend>python3-requests</exec_depend>     <!-- agent_node / llama_server_manager: llama-server HTTP -->
+
+  <!-- 본 패키지의 커스텀 메시지/서비스 -->
+  <depend>robot_arm_msgs</depend>
+
+  <!-- 카메라-로봇 Hand-Eye 캘리브레이션 -->
+  <depend>robot_state_publisher</depend>
+  <depend>realsense2_camera</depend>
+  <exec_depend>aruco_ros</exec_depend>           <!-- 소스 빌드: github.com/pal-robotics/aruco_ros (humble-devel) -->
+  <exec_depend>easy_handeye2</exec_depend>       <!-- 소스 빌드: github.com/marcoesposito1988/easy_handeye2 -->
+
+  <export>
+    <build_type>ament_python</build_type>
+  </export>
+</package>

@@ -1,0 +1,76 @@
+# =============================================================================
+# dr_config.yaml
+# -----------------------------------------------------------------------------
+# Domain Randomization 파라미터 — record_sim_teleop.py 의 SceneManager 가
+# 매 에피소드 setup_episode_scene 직후 apply_domain_randomization() 에서 적용.
+#
+# 적용 모델 (에피소드 누적 drift 방지):
+#   - SceneManager 가 기동 시 베이스 값(조명 intensity/color, 카메라 focalLength)을
+#     1회 캡처한다. 매 에피소드 jitter 는 그 베이스 값에 곱해지므로 에피소드가
+#     쌓여도 분포가 한쪽으로 떠내려가지 않는다.
+#   - mult / color_jitter 계열: [lo, hi] uniform 샘플 → 베이스 * 샘플.
+#   - 모든 섹션은 선택적 — 키가 없거나 enabled:false 면 건너뛴다.
+#
+# 목적: Isaac Sim 렌더/물리와 실기(SO-101 + RealSense) 사이 도메인 갭을 학습
+#       데이터 분포로 흡수해 ACT 의 sim2real 전이를 돕는다.
+# 관련: README "Sim teleop 수집", ACT Co-training.
+# =============================================================================
+
+
+# ── [1] 조명 (Visual) ────────────────────────────────────────────────────────
+# 씬의 모든 UsdLux 광원에 적용. 베이스 intensity/color 를 기동 시 캡처해 곱셈 jitter.
+lighting:
+  enabled: true
+  # 광원 intensity 배율 — 실내 조명 밝기 변동·노출 차이 모사.
+  intensity_mult: [0.7, 1.3]
+  # RGB 채널별 독립 배율 — 색온도/화이트밸런스 변동 모사 (1.0 = 변화 없음).
+  color_jitter: [0.92, 1.08]
+
+
+# ── [2] 카메라 (Visual) ──────────────────────────────────────────────────────
+# camera_prim 의 focalLength 를 jitter — RealSense FOV 캘리브레이션 오차 모사.
+camera:
+  enabled: true
+  focal_length_mult: [0.95, 1.05]
+
+
+# ── [3] 질량 (Physics) ───────────────────────────────────────────────────────
+# 이번 에피소드 배치된 객체의 UsdPhysics.MassAPI mass 를 jitter.
+# 객체는 매 에피소드 래퍼 USD 를 새로 reference 하므로 baked mass 가 베이스 —
+# 별도 캡처 없이 그 값에 곱한다.
+mass:
+  enabled: true
+  mult: [0.8, 1.2]
+
+
+# =============================================================================
+# 미구현(TODO) — 아래 섹션은 스키마 메모만 두고 apply_domain_randomization 이
+# 처리하지 않는다. 활성화하려면 SceneManager 에 해당 헬퍼를 먼저 구현해야 한다.
+# -----------------------------------------------------------------------------
+# texture            — 객체/테이블/배경 재질 무작위화
+#   보류 사유: 텍스처 라이브러리(N종 albedo/roughness 맵)와 UsdShade 머티리얼
+#   바인딩 작업이 선행돼야 함. 별도 에셋 준비 후 구현.
+#
+# friction           — 객체·테이블 표면 마찰 (static/dynamic)
+#   보류 사유: UsdPhysics 머티리얼을 생성·바인딩하고 grasp 안정성에 미치는
+#   영향을 teleop 으로 검증해야 함. 마찰이 너무 낮으면 시연 자체가 실패하므로
+#   범위를 보수적으로 잡아야 한다.
+#
+# pd_gain            — SO-101 관절 PD 게인 (Kp/Kd)
+#   보류 사유: drive_follower 의 PD 응답을 바꾸면 teleop 추종성이 함께 바뀐다.
+#   실기 Feetech STS3215 게인 실측값을 중심으로 잡고 런타임 articulation API
+#   (get/set gains)로 적용해야 함. 실측 전까지 보류.
+#
+# observation_noise  — joint_state / rgb 센서 노이즈
+#   보류 사유: 시뮬레이터에 굽지 않고 학습 시점 augmentation 으로 처리하는 편이
+#   재현·튜닝에 유리(데이터 재수집 없이 노이즈 강도 조정 가능). 학습 파이프라인
+#   쪽에서 다룬다.
+#
+# distractors        — 무관 방해 물체 배치
+#   보류 사유: TargetSelector([D5])·multi_target_scenes.yaml 의 장면
+#   구성과 책임이 겹침. 방해 물체는 scenes 정의에 흡수하는 방향으로 검토.
+#
+# held_out_eval      — 검증용 별도 DR 범위
+#   보류 사유: 학습 분포와 분리된 held-out 평가 범위는 평가 스크립트에서
+#   이 파일을 오버라이드하는 방식으로 다룬다.
+# =============================================================================

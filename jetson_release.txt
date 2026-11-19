@@ -1,0 +1,22 @@
+Software part of jetson-stats 4.3.2 - (c) 2024, Raffaello Bonghi
+Jetpack missing!
+ - Model: NVIDIA Jetson Orin Nano Engineering Reference Developer Kit Super
+ - L4T: 36.4.7
+NV Power Mode[0]: 15W
+Serial Number: [XXX Show with: jetson_release -s XXX]
+Hardware:
+ - P-Number: p3767-0005
+ - Module: NVIDIA Jetson Orin Nano (Developer kit)
+Platform:
+ - Distribution: Ubuntu 22.04 Jammy Jellyfish
+ - Release: 5.15.148-tegra
+jtop:
+ - Version: 4.3.2
+ - Service: Active
+Libraries:
+ - CUDA: 12.6.68
+ - cuDNN: 9.3.0.75
+ - TensorRT: 10.3.0.30
+ - VPI: 3.2.4
+ - Vulkan: 1.3.204
+ - OpenCV: 4.8.0 - with CUDA: NO

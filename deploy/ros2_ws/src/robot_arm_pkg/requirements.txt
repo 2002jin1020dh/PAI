@@ -1,0 +1,52 @@
+# ============================================================
+# robot_arm_pkg requirements
+# Python  : 3.10
+# ROS2    : Humble (Ubuntu 22.04 LTS)
+# ============================================================
+# ROS2 패키지(rclpy, sensor_msgs, std_msgs, geometry_msgs)는
+# apt/rosdep으로 설치
+#
+# 설치 방법:
+#   pip install -r requirements.txt
+# ============================================================
+
+# ── ROS2 Python 빌드 필수 ────────────────────────────────────
+setuptools>=58.2.0,<80   # ROS2 Humble + colcon-core(<80) 호환 상한
+
+# ── 공통 ─────────────────────────────────────────────────────
+numpy>=1.21.0        # 이미지/텐서 데이터 처리
+# Ubuntu 22.04 apt scipy(1.8)는 NumPy 1.x 빌드라 NumPy 2.x 환경에서 _ARRAY_API
+# AttributeError를 일으킨다. sentence-transformers → sklearn → scipy 의존 체인이
+# 깨지므로 NumPy 2.x 호환되는 1.13+ 를 사용자 영역에 명시 설치한다.
+scipy>=1.13.0
+Pillow               # 카메라 이미지 처리 (record_real_teleop.py / agent_node verify_result)
+PyYAML>=6.0          # calibration / config YAML 파싱 (agent_node, llama_server_manager)
+
+# ── llama-server HTTP 통신 ──────────────────────────────────
+requests>=2.28.0     # agent_node, llama_server_manager → llama-server HTTP
+
+# ── PyTorch 추론 ────────────────────────────────────────────
+# act_node       : LeRobot ACTPolicy(.pth) 추론
+# embedding_node : sentence-transformers 텍스트 임베딩 추론
+torch>=2.0.0
+
+# ── LeRobot SDK ─────────────────────────────────────────────
+# robot_controller_node : SO-101 모터 제어
+# act_node              : ACTPolicy 클래스
+lerobot==0.4.4
+
+# ── 임베딩 라이브러리 ────────────────────────────────────────
+# embedding_node     : paraphrase-multilingual-MiniLM-L12-v2 (D=384, ~120MB)
+# postprocess_real_labels.py / training/imitation_data/scripts/generate_language_labels.py도 동일 모델 사용
+#
+# sentence-transformers 5.x는 transformers 5.x pre-release에 맞춰 만들어졌고
+# stable transformers 4.x와는 export가 어긋나 ImportError가 발생한다
+# (PreTrainedModel / is_datasets_available / is_torch_npu_available 중 하나).
+# transformers 5.x stable 등장 전까지 <5.0 으로 핀.
+sentence-transformers>=2.7.0,<5.0
+
+# transformers 4.57.x는 top-level에서 PreTrainedModel export를 제거해서
+# (hasattr(transformers, 'PreTrainedModel') == False) sentence-transformers의
+# "from transformers import PreTrainedModel"이 깨진다. PreTrainedModel이
+# top-level에 살아 있던 4.4x 라인으로 핀한다.
+transformers>=4.41.0,<4.50.0
